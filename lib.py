@@ -1425,3 +1425,30 @@ def cancel_obsolete_sell_offers_from_setup(client, var_name='items_sell'):
     items_sell = client.script_options.get(var_name, []) 
     cancel_obsolete_sell_offers(client, items_sell)
 
+# Killed count for pirates
+# Example: check_kill_count_pirates(label_jump:'doTask', label_skip:'notDoTask')
+def check_kill_count_pirates(client, monster_name='pirates', kill_amount=3000, label_jump, label_skip):
+    result = client.get_windows_by_names(['QuestTracker'])
+    if result:
+        tracker = result[0]
+        tracker_text = tracker.recognize_text_content()
+        if monster_name in tracker_text:
+            print('[Action] Monster found')
+            print('Tracker_Text:', tracker_text)
+            marauder = tracker_text[tracker_text.find("killed") + 6:tracker_text.find('Marauders', tracker_text.find('Marauders'))]
+            cutthroats = tracker_text[tracker_text.find("Marauders,") + 10:tracker_text.find('Cutthroats',tracker_text.find('Cutthroats'))]
+            buccaneers = tracker_text[tracker_text.find("Cutthroats,") + 11:tracker_text.find('Buccaneers',tracker_text.find('Buccaneers'))]
+            corsairs = tracker_text[tracker_text.find("and") + 3:tracker_text.find('Corsairs', tracker_text.find('Corsairs'))]
+            current_killcount = int(marauder) + int(cutthroats) + int(buccaneers) + int(corsairs)
+            print('[Action] Hunted ', current_killcount, '/', str(kill_amount), ' ', monster_name)
+            if int(current_killcount) > int(kill_amount):
+                print('[Action] Kill Count reached, Jump label:', label_jump)
+                client.jump_label(label_jump)
+            else:
+                print('[Action] Kill Count not reached, Jump label:', label_skip)
+                client.jump_label(label_skip)
+        else:
+            print('[Action] Could not find Monster Name')
+    else:
+        print('[Action] Could not find Quest Tracker window')
+
